@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mongo_json_inserter"
+version = "0.1.0"
+dependencies = [
+  "typer",
+  "pymongo"
+]
+authors = [
+  { name="Jeff Stark", email="jstark997@gmail.com" },
+]
+description = "An inserter of JSON lines into a MongoDB database"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+monjin = "inserter.cli:app"
+
+
