@@ -15,7 +15,7 @@ def insert_files(
     source_dir: Annotated[str, typer.Argument(help="Source directory containing JSON files")],
     dest_dir: Annotated[str, typer.Argument(help="Destination directory for processed files")],
     log_file_path: Annotated[str, typer.Argument(help="Path to the log file")],
-    index_specs: Annotated[Optional[str], typer.Argument(help="Optional JSON string for index specifications")] = None
+    add_fields: Annotated[Optional[str], typer.Argument(help="Optional JSON array specifying fields to add to each document with null values")] = None
         ):
     """
     Processes all files in the specified directory:
@@ -52,13 +52,17 @@ def insert_files(
         typer.secho(f"Connected to database: {db}", fg=typer.colors.GREEN)
         typer.secho(f"Connected to collection: {collection}", fg=typer.colors.GREEN)
 
-        # Ensure indexes are created if index specifications are provided
-        if index_specs:
+        # Check if there are additional empty fields to add
+        additional_fields = {}
+        if add_fields:
             try:
-                parsed_index_specs = json.loads(index_specs)
-                create_indexes(collection, parsed_index_specs)
-            except json.JSONDecodeError as e:
-                typer.secho(f"Invalid index specifications: {e}", fg=typer.colors.RED)
+                field_list = json.loads(add_fields)
+                if isinstance(field_list, list):
+                    additional_fields = {field: None for field in field_list}
+                else:
+                    raise ValueError("Expected a JSON array of field names.")
+            except (json.JSONDecodeError, ValueError) as e:
+                typer.secho(f"Invalid additional fields JSON: {e}", fg=typer.colors.RED)
                 raise typer.Exit(code=1)
 
         # List all files in the source directory
@@ -72,7 +76,7 @@ def insert_files(
             typer.secho(f"Processing file: {file_path}", fg=typer.colors.BLUE)
 
             # Perform batch insert
-            batch_insert(file_path, collection, timestamped_log_file_path)
+            batch_insert(file_path, collection, timestamped_log_file_path, additional_fields)
 
             # Move the file to the destination directory
             dest_path = os.path.join(dest_dir, file_name)

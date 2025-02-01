@@ -90,7 +90,7 @@ def insert_batch(collection, batch, results, file_path, log_file_path):
         with open(log_file_path, "a") as log_file:
             log_file.write(f"Exception thrown in processing file - {file_path} : {e}\n")
 
-def batch_insert(file_path, collection, log_file_path, batch_size=1000):
+def batch_insert(file_path, collection, log_file_path, additional_fields, batch_size=1000):
     """
     Reads JSON lines from a file and inserts them into a MongoDB collection in batches.
     Logs summary results in a JSON format.
@@ -111,6 +111,9 @@ def batch_insert(file_path, collection, log_file_path, batch_size=1000):
                 try:
                     # Parse the JSON line
                     document = json.loads(line.strip())
+                    # Add additional field if any
+                    for field in additional_fields:
+                        document.setdefault(field, None)  # Ensure field exists with a value of None
                     batch.append(document)
 
                     # Insert documents in batches
